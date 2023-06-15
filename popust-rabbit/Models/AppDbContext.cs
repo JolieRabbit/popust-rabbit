@@ -9,5 +9,6 @@ namespace popust_rabbit.Models
         }
 
         public object Usuarios { get; internal set; }
+        public object Cupom { get; internal set; }
     }
 }

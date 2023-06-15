@@ -6,6 +6,7 @@ namespace popust_rabbit.Models
     {
         [Key]
         public int ID { get; set; }
+        public object Id { get; internal set; }
         [Required]
         public string Nome { get; set; }
         [Required]

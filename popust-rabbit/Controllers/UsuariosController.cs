@@ -20,29 +20,38 @@ namespace popust_rabbit.Controllers
 
         public object BCryptd { get; private set; }
 
-        public UsuariosController(AppDbContext context) 
+        public UsuariosController(AppDbContext context)
         {
             _context = context;
         }
 
-        [HttpGet]
-        public async Task<ActionResult> GetAll()
+        public AppDbContext GetContext()
         {
-            var model = await _context.Usuarios.ToListAsync();
+            return _context;
+        }
+
+        [HttpGet]
+        public async Task<ActionResult> GetAll(AppDbContext context)
+        {
+            var model = await _context.Usuarios;
             return Ok(model);
         }
 
+        public AppDbContext Get_context()
+        {
+            return _context;
+        }
+
         [HttpPost]
-        public async Task<ActionResult> Create(UsuarioDto model)
+        public async Task<ActionResult> Create(UsuarioDto model, AppDbContext _context)
         {
             Usuario novo = new Usuario()
             {
                 Nome = model.Nome,
-                Password = BCryptd.Net.BCryptd.HashPassword(model.Password),
+                Password = BCrypt.Net.BCrypt.HashPassword(model.Password),
                 Perfil = model.Perfil
              };
-
-            _context.Usuarios.Add(novo);
+            _ = _context.Usuarios.Add(novo);
             await _context.SaveChangesAsync();
 
             return CreatedAtAction("GetById", new { id = novo.Id }, novo);
@@ -64,7 +73,7 @@ namespace popust_rabbit.Controllers
         {
             if (id != model.Id) return BadRequest();
 
-            var modeloDb = await _context.Usuarios.AsNoTracking()
+            var modeloDb = await _context.Usuarios.AskNoTracking()
                 .FirstOrDefaultAsync(c => c.Id == id);
 
             if (modeloDb == null) return NotFound();
@@ -73,7 +82,8 @@ namespace popust_rabbit.Controllers
             modeloDb.Password = BCrypt.Net.BCrypt.HashPassword(model.Password);
             modeloDb.Perfil = model.Perfil;
 
-            _context.Usuarios.Update(modeloDb);
+            object usuarios = _context.Usuarios;
+            object value = usuarios;
             await _context.SaveChangesAsync();
 
             return NoContent();
@@ -82,7 +92,7 @@ namespace popust_rabbit.Controllers
         [HttpDelete("{id}")]
         public async Task<ActionResult> Delete(int id)
         {
-            var model = await _context.Usuarios.FindAsync(id);
+            var model = await _context.Usuarios.(id);
 
             if (model == null) return NotFound();
 
@@ -96,7 +106,7 @@ namespace popust_rabbit.Controllers
         [HttpPost("authenticate")]
         public async Task<ActionResult> Authenticate(AuthenticateDto model)
         {
-            var usuarioDb = await _context.Usuarios.FindAsync(model.Id);
+            var usuarioDb = await _context.Usuarios.(model.Id);
 
             if (usuarioDb == null || !BCrypt.Net.BCrypt.Verify(model.Password, usuarioDb.Password))
                 return Unauthorized();
